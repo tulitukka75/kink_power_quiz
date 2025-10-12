@@ -128,6 +128,12 @@ if st.button("Show My Results"):
     angles += angles[:1]
 
     fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+    # Keep 0..5 scale so sliders map 1–5 correctly
+    ax.set_ylim(0, 5)
+    ax.set_yticks([1, 2, 3, 4, 5])
+    ax.set_yticklabels(["1", "2", "3", "4", "5"])  # or [] if you want them hidden
+    ax.grid(True)
+
     ax.plot(angles, values, linewidth=2)
     ax.fill(angles, values, alpha=0.25)
     ax.set_xticks(angles[:-1])

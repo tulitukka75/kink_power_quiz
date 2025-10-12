@@ -17,8 +17,7 @@ QUESTIONS_PATH = os.path.join(os.path.dirname(__file__), "questions.json")
 @st.cache_data(show_spinner=False)
 def load_questions(path: str):
     with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return data
+        return json.load(f)
 
 try:
     QBANK = load_questions(QUESTIONS_PATH)
@@ -41,14 +40,16 @@ role_key = "dom" if role == "Dominant / Top" else "sub"
 items = QBANK[role_key]
 
 # ----------------------------
-# Build a randomized question list
+# Build or recall a randomized question order
 # ----------------------------
-all_questions = []
-for base, qlist in items.items():
-    for q in qlist:
-        all_questions.append((base, q))
-
-random.shuffle(all_questions)
+if "question_order" not in st.session_state or st.session_state.get("role_key") != role_key:
+    # Flatten questions into (category, text) pairs
+    all_questions = [(base, q) for base, qlist in items.items() for q in qlist]
+    random.shuffle(all_questions)
+    st.session_state["question_order"] = all_questions
+    st.session_state["role_key"] = role_key
+else:
+    all_questions = st.session_state["question_order"]
 
 # ----------------------------
 # Collect responses (no titles)
@@ -87,19 +88,3 @@ if st.button("Show My Results"):
     ax.set_theta_direction(-1)
     ax.grid(True)
 
-    # --- Draw radar ---
-    ax.plot(angles, values, linewidth=2)
-    ax.fill(angles, values, alpha=0.25)
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(labels)
-    ax.set_title(f"Your Power Profile – {role}", pad=20)
-
-    st.pyplot(fig)
-
-    # Summary
-    st.markdown("### Quick Read")
-    sorted_bases = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
-    top3 = ", ".join([f"{name} ({score:.1f})" for name, score in sorted_bases[:3]])
-    st.write(f"Your strongest bases right now: **{top3}**.")
-    st.caption("Tip: Compare these results with your partner’s to spot overlaps and gaps. "
-               "Scores reflect preferences today; they can shift by scene and context.")

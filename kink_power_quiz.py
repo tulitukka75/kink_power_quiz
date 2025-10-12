@@ -88,3 +88,19 @@ if st.button("Show My Results"):
     ax.set_theta_direction(-1)
     ax.grid(True)
 
+    # --- Draw radar ---
+    ax.plot(angles, values, linewidth=2)
+    ax.fill(angles, values, alpha=0.25)
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(labels)
+    ax.set_title(f"Your Power Profile – {role}", pad=20)
+
+    st.pyplot(fig)
+
+    # Summary
+    st.markdown("### Quick Read")
+    sorted_bases = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+    top3 = ", ".join([f"{name} ({score:.1f})" for name, score in sorted_bases[:3]])
+    st.write(f"Your strongest bases right now: **{top3}**.")
+    st.caption("Tip: Compare these results with your partner’s to spot overlaps and gaps. "
+               "Scores reflect preferences today; they can shift by scene and context.")

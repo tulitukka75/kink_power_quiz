@@ -1,0 +1,64 @@
+{
+  "dominant_profiles": [
+    {
+      "id": "drill_sergeant",
+      "name": "Drill Sergeant",
+      "aliases": ["Drill Sergeant Dom"],
+      "scores": { "Legitimate": 5, "Reward": 4, "Coercive": 5, "Referent": 2, "Expert": 2, "Informational": 2 }
+    },
+    {
+      "id": "caregiver",
+      "name": "Caregiver (Daddy/Mommy)",
+      "aliases": ["Daddy Dom", "Mommy Dom", "Caregiver Dom"],
+      "scores": { "Legitimate": 2, "Reward": 3, "Coercive": 1, "Referent": 5, "Expert": 4, "Informational": 4 }
+    },
+    {
+      "id": "storyteller",
+      "name": "Storyteller",
+      "aliases": ["Visionary", "Narrative/Story Dom"],
+      "scores": { "Legitimate": 2, "Reward": 1, "Coercive": 1, "Referent": 5, "Expert": 4, "Informational": 5 }
+    },
+    {
+      "id": "contract_lawyer",
+      "name": "Contract Lawyer",
+      "aliases": ["Transactional Dom"],
+      "scores": { "Legitimate": 5, "Reward": 5, "Coercive": 4, "Referent": 2, "Expert": 2, "Informational": 3 }
+    },
+    {
+      "id": "prophet",
+      "name": "Prophet (Charismatic Dom)",
+      "aliases": ["Charismatic Dom", "Seductive Dom"],
+      "scores": { "Legitimate": 1, "Reward": 1, "Coercive": 1, "Referent": 5, "Expert": 4, "Informational": 4 }
+    },
+    {
+      "id": "ritualist",
+      "name": "Ritualist (High Protocol)",
+      "aliases": ["High Protocol Dom", "Procedural/Ritual Dom"],
+      "scores": { "Legitimate": 5, "Reward": 3, "Coercive": 1, "Referent": 2, "Expert": 3, "Informational": 4 }
+    },
+    {
+      "id": "chameleon",
+      "name": "Chameleon",
+      "aliases": ["Adaptive Dom", "Situational Dom"],
+      "scores": { "Legitimate": 4, "Reward": 4, "Coercive": 3, "Referent": 4, "Expert": 4, "Informational": 4 }
+    },
+    {
+      "id": "skill_geek",
+      "name": "Skill Geek",
+      "aliases": ["Rope Nerd Dom", "Technical Dom"],
+      "scores": { "Legitimate": 1, "Reward": 1, "Coercive": 1, "Referent": 3, "Expert": 5, "Informational": 4 }
+    },
+    {
+      "id": "saint",
+      "name": "Saint",
+      "aliases": ["Principled Dom", "Ethical/Values-Based Dom"],
+      "scores": { "Legitimate": 4, "Reward": 1, "Coercive": 2, "Referent": 5, "Expert": 3, "Informational": 5 }
+    },
+    {
+      "id": "disciplinarian",
+      "name": "Disciplinarian",
+      "aliases": ["Punitive/Correction Dom"],
+      "scores": { "Legitimate": 2, "Reward": 4, "Coercive": 5, "Referent": 4, "Expert": 2, "Informational": 2 }
+    }
+  ]
+}

@@ -46,6 +46,16 @@ except Exception as e:
 
 CATEGORIES_ORDER = ["Legitimate", "Reward", "Coercive", "Referent", "Expert", "Informational"]
 
+from matching import rank_profiles  # <-- add this import
+
+DOM_PROFILES_PATH = os.path.join(BASE_DIR, "dominant_profiles.json")
+try:
+    DOM_PROFILES = load_json(DOM_PROFILES_PATH)["dominant_profiles"]
+except Exception as e:
+    DOM_PROFILES = []
+    st.warning(f"Couldn't load dominant_profiles.json: {e}")
+
+
 # ----------------------------
 # Role selection
 # ----------------------------
@@ -163,3 +173,23 @@ if st.session_state["show_results"]:
                 st.markdown(long_text)
             else:
                 st.caption("Description not available.")
+
+    # ---- Dominant stereotype matches (we'll add submissive later) ----
+    if role_key == "dom" and DOM_PROFILES:
+        st.markdown("### Dominant stereotype matches")
+        ranked = rank_profiles(scores, DOM_PROFILES)
+
+        # Show top 3 prominently
+        top3 = ranked[:3]
+        if top3:
+            for r in top3:
+                st.markdown(f"- **{r['name']}** — **{r['match_percent']}%** match")
+
+        # Full list in an expander
+        with st.expander("See all dominant profiles"):
+            for r in ranked:
+                st.markdown(f"- **{r['name']}** — {r['match_percent']}%")
+    else:
+        # Optional note if user is on Sub view or profiles missing
+        st.caption("Dominant profile matching appears when answering as a Dominant and the profile file is present.")
+

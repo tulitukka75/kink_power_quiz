@@ -1,3 +1,6 @@
+# kink_power_quiz.py
+# Streamlit app: Kink Power Questionnaire with fixed-per-role random order,
+# per-role state persistence, radar chart, and expandable results
 import json
 import os
 import random
@@ -5,24 +8,40 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
 
+# ----------------------------
+# Page setup
+# ----------------------------
 st.set_page_config(page_title="Kink Power Questionnaire", page_icon="🕸️", layout="centered")
 st.title("Kink Power Use / Experience Questionnaire")
 st.write("Rate each statement from **1 (Strongly Disagree)** to **5 (Strongly Agree)**.")
 
+# Persistent UI flags
+if "show_results" not in st.session_state:
+    st.session_state["show_results"] = False
+
 # ----------------------------
-# Load question banks from JSON
+# Data loading
 # ----------------------------
-QUESTIONS_PATH = os.path.join(os.path.dirname(__file__), "questions.json")
+BASE_DIR = os.path.dirname(__file__)
+QUESTIONS_PATH = os.path.join(BASE_DIR, "questions.json")
+DESCRIPTIONS_PATH = os.path.join(BASE_DIR, "power_descriptions.json")
 
 @st.cache_data(show_spinner=False)
-def load_questions(path: str):
+def load_json(path: str):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
+# Load question bank and descriptions
 try:
-    QBANK = load_questions(QUESTIONS_PATH)
+    QBANK = load_json(QUESTIONS_PATH)  # expects {"dom": {...}, "sub": {...}}
 except Exception as e:
     st.error(f"Couldn't load questions.json: {e}")
+    st.stop()
+
+try:
+    DESCRIPTIONS = load_json(DESCRIPTIONS_PATH)  # expects {Base: {"short":..., "long":...}}
+except Exception as e:
+    st.error(f"Couldn't load power_descriptions.json: {e}")
     st.stop()
 
 CATEGORIES_ORDER = ["Legitimate", "Reward", "Coercive", "Referent", "Expert", "Informational"]
@@ -35,60 +54,93 @@ role = st.radio(
     options=["Dominant / Top", "Submissive / Bottom"],
     horizontal=True
 )
-
 role_key = "dom" if role == "Dominant / Top" else "sub"
+
+# Defensive checks
+if role_key not in QBANK or not isinstance(QBANK[role_key], dict):
+    st.error(f"questions.json missing role section '{role_key}'.")
+    st.stop()
+
 items = QBANK[role_key]
 
 # ----------------------------
-# Build or recall a randomized question order
+# Fixed random order per role (stable seeds)
 # ----------------------------
-if "question_order" not in st.session_state or st.session_state.get("role_key") != role_key:
-    # Flatten questions into (category, text) pairs
-    all_questions = [(base, q) for base, qlist in items.items() for q in qlist]
-    random.shuffle(all_questions)
-    st.session_state["question_order"] = all_questions
-    st.session_state["role_key"] = role_key
-else:
-    all_questions = st.session_state["question_order"]
+@st.cache_data(show_spinner=False)
+def get_fixed_order_for_role(items_dict, seed: int):
+    """Return a stable shuffled list of (base, question) for this role."""
+    pairs = [(base, q) for base, qlist in items_dict.items() for q in qlist]
+    rnd = random.Random(seed)
+    rnd.shuffle(pairs)
+    return pairs
+
+seed = 42 if role_key == "dom" else 4242
+all_questions = get_fixed_order_for_role(items, seed)
 
 # ----------------------------
-# Collect responses (no titles)
+# Ensure per-role answer maps exist
+# ----------------------------
+if "answers_dom" not in st.session_state:
+    st.session_state["answers_dom"] = {}
+if "answers_sub" not in st.session_state:
+    st.session_state["answers_sub"] = {}
+
+answers_map = st.session_state["answers_dom"] if role_key == "dom" else st.session_state["answers_sub"]
+
+# ----------------------------
+# Collect responses (no visible category titles)
 # ----------------------------
 st.markdown("### Your Responses")
 
-responses = {base: [] for base in CATEGORIES_ORDER}
+current_role_scores = {base: [] for base in CATEGORIES_ORDER}
 
 for i, (base, question) in enumerate(all_questions, start=1):
+    # slider key is unique per role and index in that role's fixed order
     key = f"{role_key}-{i}"
-    score = st.slider(question, min_value=1, max_value=5, value=3, key=key)
-    responses[base].append(score)
+    default_val = int(answers_map.get(key, 3))
+    val = st.slider(question, min_value=1, max_value=5, value=default_val, key=key)
+    answers_map[key] = val
+    if base in current_role_scores:
+        current_role_scores[base].append(val)
+
+# Compute averages for visible role
+scores = {
+    base: (sum(vals) / len(vals)) if vals else 0
+    for base, vals in current_role_scores.items()
+}
 
 # ----------------------------
-# Compute base averages
+# Results controls
 # ----------------------------
-scores = {base: (sum(vals) / len(vals)) if vals else 0 for base, vals in responses.items()}
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button("Show My Results", key=f"show_results_btn_{role_key}"):
+        st.session_state["show_results"] = True
+with col2:
+    if st.button("Reset results view", key=f"reset_results_btn_{role_key}"):
+        st.session_state["show_results"] = False
 
 # ----------------------------
-# Show results (radar chart)
+# Render results
 # ----------------------------
-if st.button("Show My Results"):
+if st.session_state["show_results"]:
     labels = [b for b in CATEGORIES_ORDER if b in scores]
     values = [scores[b] for b in labels]
+    # close the radar
     values += values[:1]
     angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
 
     fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-
-    # --- Fix axis scaling and orientation ---
+    # Fixed axis & orientation
     ax.set_ylim(0, 5)
     ax.set_yticks([1, 2, 3, 4, 5])
     ax.set_yticklabels(["1", "2", "3", "4", "5"])
-    ax.set_theta_offset(np.pi / 2)
-    ax.set_theta_direction(-1)
+    ax.set_theta_offset(np.pi / 2)   # start at 12 o'clock
+    ax.set_theta_direction(-1)       # clockwise
     ax.grid(True)
 
-    # --- Draw radar ---
+    # Radar
     ax.plot(angles, values, linewidth=2)
     ax.fill(angles, values, alpha=0.25)
     ax.set_xticks(angles[:-1])
@@ -96,48 +148,18 @@ if st.button("Show My Results"):
     ax.set_title(f"Your Power Profile – {role}", pad=20)
 
     st.pyplot(fig)
-    
 
-    # Summary
-    st.markdown("### Quick Read")
-    sorted_bases = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
-    top3 = ", ".join([f"{name} ({score:.1f})" for name, score in sorted_bases[:3]])
-    st.write(f"Your strongest bases right now: **{top3}**.")
-    st.caption("Tip: Compare these results with your partner’s to spot overlaps and gaps. "
-               "Scores reflect preferences today; they can shift by scene and context.")
-
-    # ---- Highlights + reveal-the-rest UI ----
-    # Sort bases by score (desc) to keep display tidy
+    # ---- Bases of power list with click-to-expand details ----
     ordered = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
-    highlights = [(b, s) for b, s in ordered if s >= 4.0]
-    the_rest  = [(b, s) for b, s in ordered if s < 4.0]
 
-    # (Optional) one-line labels for quick context
-    short_desc = {
-        "Legitimate": "authority from agreed roles/structure",
-        "Reward": "influence via pleasure, praise, privileges",
-        "Coercive": "influence via consequences/denial",
-        "Referent": "influence via trust/admiration",
-        "Expert": "influence via skill/competence",
-        "Informational": "influence via explanation/framing"
-    }
-
-    st.markdown("### Highlights (≥ 4.0)")
-    if highlights:
-        for b, s in highlights:
-            st.markdown(f"- **{b}** — {s:.1f} · {short_desc.get(b, '')}")
-    else:
-        st.caption("No bases at or above 4.0 yet—adjust sliders and try again.")
-
-    # Button to reveal the rest (< 4.0)
-    # Use session_state so it stays open after clicking
-    if st.button("Show the rest"):
-        st.session_state["show_rest_bases"] = True
-
-    if st.session_state.get("show_rest_bases"):
-        st.markdown("### The rest (< 4.0)")
-        if the_rest:
-            for b, s in the_rest:
-                st.markdown(f"- **{b}** — {s:.1f} · {short_desc.get(b, '')}")
-        else:
-            st.caption("Nothing to show here.")
+    st.markdown("### Bases of Power — details")
+    for base, score in ordered:
+        desc = DESCRIPTIONS.get(base, {})
+        short_text = desc.get("short", "")
+        long_text = desc.get("long", "")
+        label = f"**{base}** — {score:.1f} · {short_text}"
+        with st.expander(label, expanded=False):
+            if long_text:
+                st.markdown(long_text)
+            else:
+                st.caption("Description not available.")

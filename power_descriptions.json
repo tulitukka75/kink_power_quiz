@@ -1,0 +1,26 @@
+{
+  "Legitimate": {
+    "short": "authority from agreed roles/structure",
+    "long": "Legitimate power is authority derived from shared agreements or recognized roles. In consensual dynamics, it’s effective when both partners clearly define who leads and under what conditions. Overuse can feel rigid; clarity and consent keep it ethical. *Example:* Agreeing that the Dominant decides bedtime during a protocol period."
+  },
+  "Reward": {
+    "short": "influence via pleasure, praise, privileges",
+    "long": "Reward power works by granting positive outcomes—pleasure, praise, privileges, attention. Consistent, transparent rewards strengthen motivation and trust; inconsistency creates confusion. *Example:* Offering verbal praise or a favorite activity after a well-executed task."
+  },
+  "Coercive": {
+    "short": "influence via consequences/denial",
+    "long": "Coercive power is the capacity to impose proportionate consequences or remove privileges. Ethical use requires prior consent, clear limits, and fairness; otherwise it becomes harmful control. *Example:* A brief, negotiated denial period after an agreed rule is broken."
+  },
+  "Referent": {
+    "short": "influence via trust/admiration",
+    "long": "Referent power stems from personal qualities that evoke trust, admiration, or identification. People align because they value the relationship. It’s powerful and relational, but demands authenticity to avoid manipulation. *Example:* Obeying because you respect and want to maintain closeness with your Dominant."
+  },
+  "Expert": {
+    "short": "influence via skill/competence",
+    "long": "Expert power arises from recognized skill and competence. It reduces uncertainty and enhances safety when paired with care and ongoing learning. *Example:* A rope-skilled Dominant whose safety checks help the submissive relax and let go."
+  },
+  "Informational": {
+    "short": "influence via explanation/framing",
+    "long": "Informational power influences by shaping understanding through explanation and framing. It’s strongest when it enhances shared meaning; it turns manipulative if facts are distorted or withheld. *Example:* Explaining expected sensations and signals before a scene to orient the experience."
+  }
+}

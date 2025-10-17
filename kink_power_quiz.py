@@ -96,6 +96,7 @@ if st.button("Show My Results"):
     ax.set_title(f"Your Power Profile – {role}", pad=20)
 
     st.pyplot(fig)
+    
 
     # Summary
     st.markdown("### Quick Read")
@@ -104,3 +105,39 @@ if st.button("Show My Results"):
     st.write(f"Your strongest bases right now: **{top3}**.")
     st.caption("Tip: Compare these results with your partner’s to spot overlaps and gaps. "
                "Scores reflect preferences today; they can shift by scene and context.")
+
+    # ---- Highlights + reveal-the-rest UI ----
+    # Sort bases by score (desc) to keep display tidy
+    ordered = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+    highlights = [(b, s) for b, s in ordered if s >= 4.0]
+    the_rest  = [(b, s) for b, s in ordered if s < 4.0]
+
+    # (Optional) one-line labels for quick context
+    short_desc = {
+        "Legitimate": "authority from agreed roles/structure",
+        "Reward": "influence via pleasure, praise, privileges",
+        "Coercive": "influence via consequences/denial",
+        "Referent": "influence via trust/admiration",
+        "Expert": "influence via skill/competence",
+        "Informational": "influence via explanation/framing"
+    }
+
+    st.markdown("### Highlights (≥ 4.0)")
+    if highlights:
+        for b, s in highlights:
+            st.markdown(f"- **{b}** — {s:.1f} · {short_desc.get(b, '')}")
+    else:
+        st.caption("No bases at or above 4.0 yet—adjust sliders and try again.")
+
+    # Button to reveal the rest (< 4.0)
+    # Use session_state so it stays open after clicking
+    if st.button("Show the rest"):
+        st.session_state["show_rest_bases"] = True
+
+    if st.session_state.get("show_rest_bases"):
+        st.markdown("### The rest (< 4.0)")
+        if the_rest:
+            for b, s in the_rest:
+                st.markdown(f"- **{b}** — {s:.1f} · {short_desc.get(b, '')}")
+        else:
+            st.caption("Nothing to show here.")
